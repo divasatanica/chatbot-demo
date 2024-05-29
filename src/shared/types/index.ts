@@ -3,6 +3,7 @@ export enum MessageStatus {
   Loading = 1,
   Done = 2,
   Error = 3,
+  Generating = 4,
 }
 
 export interface MessageItem {

@@ -41,7 +41,7 @@ export const saveDataToDB = async <T extends { id: string } = any>(
       const item = recordList[i];
 
       if (item.includes(data.id)) {
-        recordList[i] = JSON.stringify(data);
+        recordList[i] = `${JSON.stringify(data)}\n`;
         break;
       }
     }

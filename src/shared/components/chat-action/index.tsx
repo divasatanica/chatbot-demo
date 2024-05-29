@@ -7,7 +7,7 @@ import { useAtom } from 'jotai';
 import { MessageListAtom, SessionInfoAtom } from 'shared/store';
 import { uuid } from 'shared/utils';
 import { MessageItem, MessageStatus } from 'shared/types';
-import { RespondMessage, SendMessage } from 'api';
+import { GenerateResponse, RespondMessage, SendMessage } from 'api';
 
 interface IProps {
   sessionId?: string;
@@ -19,17 +19,49 @@ export function ChatModalAction(props: IProps) {
   const [_, setMessageList] = useAtom(MessageListAtom);
   const [sessionInfo] = useAtom(SessionInfoAtom);
   const update = useUpdate();
+  const scrollToBottom = () => {
+    document.getElementById('flow-bottom')?.scrollIntoView();
+  }
 
   const getResponse = useCallback(async (messageId: string) => {
     const res = await RespondMessage({
       message_id: messageId,
     });
 
-    if (res.code === 0) {
-      setMessageList(messageList => {
-        messageList.push(res.data.message);
-      });
+    if (res.code !== 0) {
+      return;
     }
+
+    setMessageList(messageList => {
+      messageList.push(res.data.message);
+    });
+    scrollToBottom();
+    const respondId = res.data.message.id;
+    const generateRes = await GenerateResponse({ message_id: messageId, respond_id: respondId });
+
+    const reader = generateRes as ReadableStreamDefaultReader;
+
+    let content = '';
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) {
+        setMessageList(messageList => {
+          const messageIndex = messageList.findIndex(item => item.id === respondId);
+          messageList[messageIndex].status = MessageStatus.Done;
+        });
+        scrollToBottom();
+        break;
+      };
+      content += value.toString();
+      setMessageList(messageList => {
+        const messageIndex = messageList.findIndex(item => item.id === respondId);
+        messageList[messageIndex].content = content;
+      });
+      scrollToBottom();
+    }
+
   }, [setMessageList]);
 
   const onSendMessage = useCallback(async () => {

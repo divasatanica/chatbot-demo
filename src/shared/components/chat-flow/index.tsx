@@ -66,6 +66,7 @@ export function ChatFlow(props: IProps) {
           />
         );
       })}
+      <div id="flow-bottom" />
     </div>
   );
 }

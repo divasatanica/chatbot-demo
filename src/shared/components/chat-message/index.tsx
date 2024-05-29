@@ -5,6 +5,7 @@ import { RandomAvatar } from 'react-random-avatars';
 import { SessionInfoAtom } from 'shared/store';
 import { MessageStatus, MessageType } from 'shared/types';
 import { classNames } from 'shared/utils';
+import { useLayoutEffect, useRef } from 'react';
 
 interface IProps {
   senderId: string;
@@ -18,9 +19,15 @@ export function ChatMessage(props: IProps) {
   const [sessionInfo, _] = useAtom(SessionInfoAtom);
 
   const isFromSelf = senderId === sessionInfo?.current?.id;
+  const sectionRef = useRef<any>(null);
+
+  useLayoutEffect(() => {
+    document.getElementById('flow-bottom')?.scrollIntoView();
+  }, []);
 
   return (
     <section
+      ref={sectionRef}
       className={classNames(
         isFromSelf ? 'self-end' : 'self-start',
         'flex',

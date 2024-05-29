@@ -3,12 +3,14 @@ import Router from 'koa-router';
 export const decorateCommonResponse: Router.IMiddleware = async (ctx, next) => {
   try {
     await next();
-    const oldBody = {...ctx.body};
+    if (ctx.body?._readableState == null) {
+      const oldBody = {...ctx.body};
 
-    ctx.body = {
-      code: 0,
-      message: '',
-      data: oldBody,
+      ctx.body = {
+        code: 0,
+        message: '',
+        data: oldBody,
+      }
     }
   } catch (e) {
     ctx.body = {

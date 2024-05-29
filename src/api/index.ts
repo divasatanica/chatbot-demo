@@ -8,7 +8,7 @@ export function setBaseURL(url = BASE_URL) {
   baseURL = url;
 }
 
-const fetchAPI = async (url: string, params: RequestInit & { timeout?: number }) => {
+const fetchAPI = async (url: string, params: RequestInit & { timeout?: number; isStream?: boolean }) => {
   const abortController = new AbortController();
   const _params: RequestInit = {
     ...params,
@@ -33,6 +33,10 @@ const fetchAPI = async (url: string, params: RequestInit & { timeout?: number })
     if (result == null) {
       abortController.abort();
       return Promise.reject(`Timeout Exceeded ${timeout}ms`);
+    }
+
+    if (params.isStream) {
+      return (result as Response).body?.pipeThrough(new TextDecoderStream())?.getReader();
     }
 
     return (result as Response).json();
@@ -105,3 +109,10 @@ export const ListMessages = (params: any) => {
   });
 }
 
+export const GenerateResponse = (params: any) => {
+  return fetchAPI(`/message/generate`, {
+    body: JSON.stringify(params),
+    method: 'GET',
+    isStream: true,
+  });
+}
